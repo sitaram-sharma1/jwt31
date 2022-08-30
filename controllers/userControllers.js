@@ -139,7 +139,22 @@ class UserControllers
         catch (error) 
         {
         }
-    }    
+    }   
+    // ___________________________________________________________________
+    // |                        LOGGED USER                               |
+    // |__________________________________________________________________|
+    //    
+    static loggedUser = async (req, res) => 
+    {   
+        try 
+        {            
+            await res.status(200).send({"status":"success","message":"Currently logged-in user is : " + req.user.name })
+        } 
+        catch (error) 
+        {            
+            await res.status(400).send({"status":"failed","message":"No user logged in currently."})
+        }
+    }
 }
 
 export default UserControllers
