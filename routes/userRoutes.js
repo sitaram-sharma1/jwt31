@@ -5,6 +5,7 @@ const userRouter = express.Router();
 
 import checkAuthUser from '../middlewares/AuthUser.js';
 userRouter.use('/user-change-password',checkAuthUser)
+userRouter.use('/user-logout',checkAuthUser)
 
 // public routes
 userRouter.post('/user-registration',UserControllers.userRegistration)

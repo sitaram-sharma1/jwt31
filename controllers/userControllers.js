@@ -90,35 +90,20 @@ class UserControllers
     {
         try 
         {
-            const { email } =await req.body                     // get email id for user identification
-            const { authorization } =await req.headers          // get token from headers
-            if(email && authorization)
-            {
-                const user =await UserModel.findOne({ email : email })
-                if(authorization.split(" ")[1] === user.token)
-                {
-                    await UserModel.findByIdAndUpdate(user._id,{$set:{"token":""}})
-                    await res.status(200).send({"status":"success","message":"Logged out successfully"})
-                }
-                else
-                {
-                    await res.status(400).send({"status":"failed","message":"invalid user Token, cant perform this activity"})
-                }    
-            }
-            else
-            {
-                await res.status(400).send({"status":"failed","message":"invalid user, cant perform this activity"})
-            }
+            console.log(req.user);
+            await UserModel.findByIdAndUpdate(req.user._id,{$set:{"token":""}})
+            await res.status(200).send({"status":"success","message":"Logged out successfully"})
+            // await res.status(400).send({"status":"failed","message":"invalid user Token, cant perform this activity"})  
         } 
         catch (error) 
         {
             await res.status(400).send({"status":"failed","message":"try again to Log-out "}) 
         }
     }
-                       // _____________________________________
-                        // |       CHANGE PASSWORD            |
-                        // |____MIDDLEWARE-VALIDATION_________|
-                        //
+    // _________________________________________________________________________
+    // |                        CHANGE PASSWORD                                |
+    // |_____________________MIDDLEWARE-VALIDATION_____________________________|
+    //
     static userChangePassword = async (req,res) =>
     {
         try 
