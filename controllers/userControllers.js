@@ -91,9 +91,16 @@ class UserControllers
         try 
         {
             console.log(req.user);
-            await UserModel.findByIdAndUpdate(req.user._id,{$set:{"token":""}})
-            await res.status(200).send({"status":"success","message":"Logged out successfully"})
-            // await res.status(400).send({"status":"failed","message":"invalid user Token, cant perform this activity"})  
+            if(req.user.token === "")
+            {
+                await res.status(400).send({"status":"failed","message":"Invalid user token. not logged in"});
+            }
+            else
+            {
+                await UserModel.findByIdAndUpdate(req.user._id,{$set:{"token":""}})
+                await res.status(200).send({"status":"success","message":"Logged out successfully"})
+            }
+
         } 
         catch (error) 
         {
