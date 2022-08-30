@@ -28,7 +28,7 @@ class UserControllers
                     const token =await jwt.sign({"userID":newUser._id},process.env.JWT_SECRET_KEY,{expiresIn:"2d"})
                     await UserModel.findByIdAndUpdate(newUser._id , {$set :{"token":token}});
                     console.log(token);
-                    res.status(201).send({"status":"Success","message":"Registered Successfully"});
+                    res.status(201).send({"status":"Success","message":"Registered Successfully","token":token});
                 }
                 else
                 {
@@ -45,7 +45,7 @@ class UserControllers
             res.status(400).send({"status":"failed","message":"Registration failed ! Try again"})
         }
     }                   // _____________________________________
-                        // |            USER LOGIN             |
+                        // |            USER LOG-IN            |
                         // |___________________________________|
     static userLogin = async (req,res) =>
     {
@@ -83,7 +83,71 @@ class UserControllers
         {
             res.status(400).send({"status":"failed","message":"try again to Log-in "})
         }
+    }                   // _____________________________________
+                        // |            USER LOG-OUT           |
+                        // |___________________________________|
+    static userLogout = async (req,res) =>
+    {
+        try 
+        {
+            const { email } =await req.body                     // get email id for user identification
+            const { authorization } =await req.headers          // get token from headers
+            if(email && authorization)
+            {
+                const user =await UserModel.findOne({ email : email })
+                if(authorization.split(" ")[1] === user.token)
+                {
+                    await UserModel.findByIdAndUpdate(user._id,{$set:{"token":""}})
+                    await res.status(200).send({"status":"success","message":"Logged out successfully"})
+                }
+                else
+                {
+                    await res.status(400).send({"status":"failed","message":"invalid user Token, cant perform this activity"})
+                }    
+            }
+            else
+            {
+                await res.status(400).send({"status":"failed","message":"invalid user, cant perform this activity"})
+            }
+        } 
+        catch (error) 
+        {
+            await res.status(400).send({"status":"failed","message":"try again to Log-out "}) 
+        }
     }
+                       // _____________________________________
+                        // |       CHANGE PASSWORD            |
+                        // |____MIDDLEWARE-VALIDATION_________|
+                        //
+    static userChangePassword = async (req,res) =>
+    {
+        try 
+        {      
+            const { newPassword , confirmNewPassword } = req.body ;
+            if( newPassword && confirmNewPassword )
+            {
+                if( newPassword === confirmNewPassword)
+                {
+                    const salt =await bcrypt.genSalt(10);
+                    const newHashedPassword =await bcrypt.hash(newPassword,salt);
+                    await UserModel.findByIdAndUpdate(req.user._id,{$set:{"password":newHashedPassword}})
+                    console.log(newHashedPassword);
+                    await res.status(200).send({"status":"success","message":"password updated successfully"})
+                }
+                else
+                {
+                    await res.status(400).send({"status":"failed","message":"password and confirm password don't matched"})
+                }                    
+            }
+            else
+            {
+                await res.status(400).send({"status":"failed","message":"All fields are required."})
+            }
+        }
+        catch (error) 
+        {
+        }
+    }    
 }
 
 export default UserControllers
