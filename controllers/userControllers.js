@@ -52,7 +52,32 @@ class UserControllers
         try
         {
             const { email , password } = req.body
-            res.status(200).send({"status":"Success","message":"Logged-in Successfully"});
+            if( email && password )
+            {
+                const user =await UserModel.findOne({email:email})
+                if( user != null )
+                {
+                    const isMatched = await bcrypt.compare(password,user.password)
+                    if(isMatched)
+                    {
+                        const token =await jwt.sign({"userID":user._id},process.env.JWT_SECRET_KEY,{expiresIn:"2d"});
+                        await UserModel.findByIdAndUpdate(user._id,{$set:{"token":token}})
+                        await res.status(200).send({"status":"Success","message":"Logged-in Successfully","token":token});
+                    }
+                    else
+                    {
+                        await res.status(400).send({"status":"failed","message":"Please enter correct email-id or password"});
+                    }
+                }
+                else
+                {
+                    await res.status(400).send({"status":"failed","message":"Invalid user"});
+                }
+            }
+            else
+            {
+                res.status(400).send({"status":"failed","message":"All fields are required"});
+            }
         }
         catch (error) 
         {
